@@ -61,13 +61,40 @@ física da API ou outro bucket do S3, que a API possui acesso para consultar e c
 arquivos.
    A pasta deve conter os arquivos no seguinte modelo:
  
-   * A506/2019-01-01T00.txt.zip / {estação}/{YYYY-MM-DDTHH}.txt.zip
-   * A506/2019-01-01T01.txt.zip
-   * A506/2019-01-01T02.txt.zip
-   * A506/2019-01-01T03.txt.zip
- 
-  A pasta deve conter ao menos 20 estações diferentes e um mês completo de dados, sendo um arquivo por hora para cada
-  estação.
+   * A506/2019/2019-01-01.txt.zip /{estação}/{ano}/{YYYY-MM-DD}.txt.zip
+   * A506/2019/2019-01-02.txt.zip
+   * A506/2019/2019-01-03.txt.zip
+   * A506/2019/2019-01-04.txt.zip
+
+O conteúdo dos arquivos está me anexo na pasta _stations_ - As colunas dos arquivos respeitam os seguintes cabeçalhos:
+
+|  ESTAÇÃO | LATITUDE  | LONGITUDE  | ALTITUDE  | ANO  | MES  | DIA  | HORA  | TEMP(C)  | TMAX(C)  | TMIN(C)  | UR(%) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+
+- TEMP: Temperatura
+- TMAX: Temperatura Máxima
+- TMIN: Temperatura Minima
+- UR: Umidade Relativa
+
+| URMAX(%)  | URMIN(%)  | TD(C)  | TDMAX(C)  | PRESSAONNM(hPa)  | PRESSAONNM_MAX(hPa)  | PRESSAONNM_MIN(hPa)  
+|---|---|---|---|---|---|---|
+
+- URMAX: Umidade Relativa Máxima
+- URMIN: Umidade Relativa Minima
+- UR: Umidade Relativa
+- TD: Temperatura Ponto de Orvalho
+- TDMAX: Temperatura Ponto de Orvalho Máxima
+- PRESSAONNM: Pressão Nominal
+- PRESSAONNM_MAX: Pressão Nominal Máxima
+- PRESSAONNM_MIN: Pressão Nominal Minima
+
+| VELVENTO(m/s)  | DIR_VENTO_RAJADA(m/s) | RADIACAO(Kjm²) | PRECIPATACAO(mm)
+|---|---|---|---|
+
+- VELVENTO: Velocidade do Vento
+- DIR_VENTO_RAJADA: Velocidade do vento rajada
+
+**A sequência é exatamente a exposta acima.**
 
 #### Core
 Como o processo em si deve funcionar?
