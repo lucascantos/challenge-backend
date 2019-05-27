@@ -3,7 +3,7 @@ from flask import Flask
 
 stratus_app = Flask(__name__)
 
-@app.route("/stations")
+@stratus_app.route("/stations")
 def hello():
     '''
     Consultar quais as estações disponíveis para consulta. 
