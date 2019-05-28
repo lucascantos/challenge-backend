@@ -89,12 +89,12 @@ O conteúdo dos arquivos está me anexo na pasta _stations_ - As colunas dos arq
 - PRESSAONNM_MAX: Pressão Nominal Máxima
 - PRESSAONNM_MIN: Pressão Nominal Minima
 
-| VELVENTO(m/s)  | DIR(°) | VENTO_RAJADA(m/s) | RADIACAO(Kjm²) | PRECIPATACAO(mm)
+| VELVENTO(m/s)  | DIRVENTO(°) | VELVENTO_RAJADA(m/s) | RADIACAO(Kjm²) | PRECIPATACAO(mm)
 |---|---|---|---|---|
 
 - VELVENTO: Velocidade do Vento
-- DIR: Direção do vento (De norte = 360° ou 0°, de leste=90°)
-- VENTO_RAJADA: Velocidade do vento rajada
+- DIRVENTO: Direção do vento (De norte = 360° ou 0°, de leste=90°)
+- VELVENTO_RAJADA: Velocidade do vento rajada
 
 **A sequência é exatamente a exposta acima.**
 

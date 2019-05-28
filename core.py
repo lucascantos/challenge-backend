@@ -14,7 +14,7 @@ def error_handler(function):
         try:
             return function(*args, **kargs)
         except Exception as e:
-            # print(e)
+            print(e)
             pass
     return wrapper
 
@@ -47,13 +47,18 @@ def unpack_data(file_path):
     '''
     Descompacta o arquivo e prepara um DataFrame
     '''
-    station_df = pd.read_csv(file_path, header=None, delim_whitespace=True)
+    header = ['ESTACAO', 'LATITUDE', 'LONGITUDE', 'ALTITUDE', 'ANO', 'MES', 'DIA', 'HORA', 'TEMP', 'TMAX', 'TMIN',
+     'UR','URMAX' , 'URMIN' , 'TD' , 'TDMAX' , 'TDMIN' , 'PRESSAONNM' , 'PRESSAONNM_MAX' , 'PRESSAONNM_MIN',
+     'VELVENTO', 'DIRVENTO', 'VELVENTO_RAJADA', 'RADIACAO', 'PRECIPATACAO']
+
+    station_df = pd.read_csv(file_path,header=None, delim_whitespace=True)
+    station_df.columns = header
     return station_df
 
 
 stations = ['A003', 'A014', 'A015', 'A011', 'A009']
 start_date = date(2014, 10, 20)
-end_date = date(2014, 10, 20)
-for i in database(['A003'], start_date,end_date):
+end_date = date(2014, 10, 23)
+for i in database(['A003'], start_date, end_date):
     if isinstance(i, pd.DataFrame):
         print(i.head())
