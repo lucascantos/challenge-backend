@@ -76,23 +76,25 @@ O conteúdo dos arquivos está me anexo na pasta _stations_ - As colunas dos arq
 - TMIN: Temperatura Minima
 - UR: Umidade Relativa
 
-| URMAX(%)  | URMIN(%)  | TD(C)  | TDMAX(C)  | PRESSAONNM(hPa)  | PRESSAONNM_MAX(hPa)  | PRESSAONNM_MIN(hPa)  
-|---|---|---|---|---|---|---|
+| URMAX(%)  | URMIN(%)  | TD(C)  | TDMAX(C)  | TDMIN(C) | PRESSAONNM(hPa)  | PRESSAONNM_MAX(hPa)  | PRESSAONNM_MIN(hPa)  
+|---|---|---|---|---|---|---|---|
 
 - URMAX: Umidade Relativa Máxima
 - URMIN: Umidade Relativa Minima
 - UR: Umidade Relativa
 - TD: Temperatura Ponto de Orvalho
 - TDMAX: Temperatura Ponto de Orvalho Máxima
+- TDMAX: Temperatura Ponto de Orvalho Minima
 - PRESSAONNM: Pressão Nominal
 - PRESSAONNM_MAX: Pressão Nominal Máxima
 - PRESSAONNM_MIN: Pressão Nominal Minima
 
-| VELVENTO(m/s)  | DIR_VENTO_RAJADA(m/s) | RADIACAO(Kjm²) | PRECIPATACAO(mm)
-|---|---|---|---|
+| VELVENTO(m/s)  | DIR(°) | VENTO_RAJADA(m/s) | RADIACAO(Kjm²) | PRECIPATACAO(mm)
+|---|---|---|---|---|
 
 - VELVENTO: Velocidade do Vento
-- DIR_VENTO_RAJADA: Velocidade do vento rajada
+- DIR: Direção do vento ( Sul = 180°, Leste = 90°)
+- VENTO_RAJADA: Velocidade do vento rajada
 
 **A sequência é exatamente a exposta acima.**
 
