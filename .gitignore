@@ -25,4 +25,4 @@ venv/
 .idea/
 
 # My folders
-stations/stations/
+stations/*

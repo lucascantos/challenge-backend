@@ -53,7 +53,6 @@ class core_table(object):
                 yield self.file_path
 
     @error_handler
-    @staticmethod
     def unpack_data(self):
         '''
         Descompacta o arquivo e prepara um DataFrame
@@ -64,10 +63,11 @@ class core_table(object):
             yield station_df
 
 
-# stations = ['A003', 'A014', 'A015', 'A011', 'A009']
-# start_date = date(2014, 10, 20)
-# end_date = date(2014, 10, 23)
-# for i in database(['A003'], start_date, end_date):
-#     # Ve se o objeto encontrado é um dataframe
-#     if isinstance(i, pd.DataFrame):
-#         print(i.head())
+stations = ['A003']
+start_date = date(2014, 10, 20)
+end_date = date(2014, 10, 23)
+x = core_table(['A003'], start_date, end_date)
+for i in x.unpack_data():
+    # Ve se o objeto encontrado é um dataframe
+    if isinstance(i, pd.DataFrame):
+        print(i[i['HORA']==0])
