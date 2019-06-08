@@ -37,35 +37,28 @@ class stations_available(object):
     def __init__(self):
 
         self.dir = 'stations/stations'
+        self.latest_stations = []
 
         self.header = ['ESTACAO', 'LATITUDE', 'LONGITUDE', 'ALTITUDE', 'ANO', 'MES', 'DIA', 'HORA', 'TEMP', 'TMAX', 'TMIN',
         'UR','URMAX' , 'URMIN' , 'TD' , 'TDMAX' , 'TDMIN' , 'PRESSAONNM' , 'PRESSAONNM_MAX' , 'PRESSAONNM_MIN',
         'VELVENTO', 'DIRVENTO', 'VELVENTO_RAJADA', 'RADIACAO', 'PRECIPATACAO']
 
-    def station_names(self):
-        '''
-        Lẽ todas as pastas e cria uma lista de estações.
-        '''
-        # Coluna 1 = Nome das estacoes = Pega o nome da cada pasta
-        station_list = os.listdir(self.dir)
-        for self.station in station_list:
-            yield self.station
 
-    def station_year(self):
-        '''
-        Dentro de uma pasta de estação, devolve o nome da pasta com o ultimo ano
-        '''
-        # Coluna2 = Data recente
-        # abre pasta com o maior ano
+    # def station_year(self):
+    #     '''
+    #     Dentro de uma pasta de estação, devolve o nome da pasta com o ultimo ano
+    #     '''
+    #     # Coluna2 = Data recente
+    #     # abre pasta com o maior ano
 
-        self.path = '{}/{}'.format(self.dir, self.station)
-        years = os.listdir(self.path)
-        years = map(int, years).sort(reversed=True)
-        for self.latest_year in years:
-            yield self.latest_year
+    #     self.path = '{}/{}'.format(self.dir, self.station)
+    #     years = os.listdir(self.path)
+    #     years = map(int, years).sort(reversed=True)
+    #     for self.latest_year in years:
+    #         yield self.latest_year
 
-        # Pegar uma lista de nome dos arquivos
-        # remove o .txt.zip
+    #     # Pegar uma lista de nome dos arquivos
+    #     # remove o .txt.zip
 
     @error_handler
     def station_date(self, file):
@@ -77,8 +70,6 @@ class stations_available(object):
             self.latest_date = date
             self.latest_date = self.latest_date.replace(hour=self.latest_hour)
         # O error cheka se a data existe
-
-
 
     def station_hour(self, file):
         '''
@@ -98,16 +89,22 @@ class stations_available(object):
         working_list = os.walk(self.dir, False)
         for folder in working_list:
             if folder[2]:
+                # Admitindo que a estrutura de pastas será sempre assim
+                # Admitindo que o walk sempre vai fazer de forma ordenada
+                self.station = folder[0][-9:-5]            
                 self.path = folder[0]
+
                 self.latest_date = datetime(1800,1,1)
                 for file in folder[2]:
                     self.station_date(file)
-        
-                self.latest_data = {
-                    'station': self.path,
-                    'date': self.latest_date
-                }
-                yield self.latest_data
+                if self.latest_date != datetime(1800,1,1):
+                    self.latest_data = {
+                        'station': self.station,
+                        'date': self.latest_date
+                    }
+
+                    yield self.latest_data
+
 
     def unpack_data(self,file):
         # Coluna3 = Hora recente
