@@ -40,43 +40,24 @@ class stations_available(object):
         'UR','URMAX' , 'URMIN' , 'TD' , 'TDMAX' , 'TDMIN' , 'PRESSAONNM' , 'PRESSAONNM_MAX' , 'PRESSAONNM_MIN',
         'VELVENTO', 'DIRVENTO', 'VELVENTO_RAJADA', 'RADIACAO', 'PRECIPATACAO']
 
-
-    def station_names(self):
-        # Coluna 1 = Nome das estacoes = Pega o nome da cada pasta
-        self.stations_list = os.listdir('stations/stations')
-
-    def station_year(self, station):
-        # Coluna2 = Data recente
-        # abre pasta com o maior ano
-        self.station = station
-        self.path = '{}/{}'.format(self.dir, self.station)
-        years = os.listdir(self.path)
-        years = map(int,years)
-        self.lastest_year = -1
-        for year in years:
-            self.lastest_year = year if year > self.lastest_year else self.lastest_year
-
-        # Pegar uma lista de nome dos arquivos
-        # remove o .txt.zip
-    def station_date(self):
-        self.path = '{}/{}'.format(self.path, str(self.lastest_year))
-        dates = os.listdir(self.path)
-        self.latest_date = datetime(1800,1,1)
-        for date in dates:
+        self.file_list = os.walk(self.dir)
+        for file in self.file_list:
             try:
-                # converte o restante pra pd_datetime ou date(YYYY,MM,DD)
-                date = datetime.strptime(date[:-8], '%Y-%m-%d')
-                self.latest_date = date if date > self.latest_date else self.latest_date
+                path = file[0]
+                data_file = file[2][-1]
+                date = datetime.strptime(file[:-8], '%Y-%m-%d')
+                latest_hour = self.latest_hour(path, data_file)
+                print(path, data_file)
             except:
-                # por hora, vou ignorar datas bugadas (IE: 30/02/20XX)
                 pass
-        # pega o arquivo mais velho
+
     
-    def station_hour(self, df):
+    def station_hour(self,path,file):
         '''
         Abre um dataframe do banco de dados e tira a ultima horade registro
         '''
-        self.latest_hour = df['HORA'].iloc[-1]
+        df = unpack_data(path,file)
+        self.latest_hour = df['HORA'].max()
 
     def station_latest(self):
         self.latest_data = {
@@ -85,10 +66,10 @@ class stations_available(object):
             'hour': self.latest_hour
         }
 
-    def unpack_data(self,station,year,date):
+    def unpack_data(self,path,file):
         # Coluna3 = Hora recente
         # Abre o arquvio com a data mais recente
-        file_path = '{}/{}/{}/{}.txt.zip'.format(self.dir, station, year, date)
+        file_path = '{}/{}'.format(path, file)
 
         header = ['ESTACAO', 'LATITUDE', 'LONGITUDE', 'ALTITUDE', 'ANO', 'MES', 'DIA', 'HORA', 'TEMP', 'TMAX', 'TMIN',
         'UR','URMAX' , 'URMIN' , 'TD' , 'TDMAX' , 'TDMIN' , 'PRESSAONNM' , 'PRESSAONNM_MAX' , 'PRESSAONNM_MIN',
