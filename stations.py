@@ -28,7 +28,7 @@ def error_handler(function):
         try:
             return function(*args, **kargs)
         except Exception as e:
-            # print(e)
+            #print(e)
             pass
     return wrapper
 
@@ -66,73 +66,70 @@ class stations_available(object):
 
         # Pegar uma lista de nome dos arquivos
         # remove o .txt.zip
-        
-    def station_date(self):
-        self.path = '{}/{}'.format(self.path, str(self.latest_year))
-        dates = os.listdir(self.path)
-        self.latest_date = datetime.strptime(dates[0][:-8], '%Y-%m-%d')
-        for date in dates[1:]:
-            try:
-                # converte o restante pra pd_datetime ou date(YYYY,MM,DD)
-                date = datetime.strptime(date[:-8], '%Y-%m-%d')
-                self.latest_date = date if date > self.latest_date else self.latest_date
-            except:
-                # por hora, vou ignorar datas bugadas (IE: 30/02/20XX)
-                pass
-    
 
-    def station_hour(self, df):
+    @error_handler
+    def station_date(self, file):
+        # converte o restante pra pd_datetime ou date(YYYY,MM,DD)
+
+        date = datetime.strptime(file[:-8], '%Y-%m-%d')
+        if date > self.latest_date:
+            self.station_hour('{}/{}'.format(self.path, file))
+            self.latest_date = date
+            self.latest_date = self.latest_date.replace(hour=self.latest_hour)
+        # O error cheka se a data existe
+
+
+
+    def station_hour(self, file):
         '''
         Abre um dataframe do banco de dados e tira a ultima hora de registro
         '''
-        self.latest_hour = df['HORA'].iloc[-1]
+        df = self.unpack_data(file)
+        self.latest_hour = df['HORA'].max()
+        
+        # O error cheka se exisem dados nesse arquivo
 
-
+    @error_handler
     def station_latest(self):
         '''
         Resultado final na forma de Dictionary
         '''
-        self.latest_date = self.latest_date.replace(hour=self.latest_hour)
-        
-        self.latest_data = {
-            'station': self.station,
-            'date': self.latest_date
-        }
 
-    def unpack_data(self,station=None,year=None,date=None):
+        working_list = os.walk(self.dir, False)
+        for folder in working_list:
+            if folder[2]:
+                self.path = folder[0]
+                self.latest_date = datetime(1800,1,1)
+                for file in folder[2]:
+                    self.station_date(file)
+        
+                self.latest_data = {
+                    'station': self.path,
+                    'date': self.latest_date
+                }
+                yield self.latest_data
+
+    def unpack_data(self,file):
         # Coluna3 = Hora recente
         # Abre o arquvio com a data mais recente
-        if (station and year and date) == None:
-            station = self.station
-            year = self.latest_year
-            date = datetime.strftime(self.latest_date, '%Y-%m-%d')
 
-        file_path = '{}/{}/{}/{}.txt.zip'.format(self.dir, station, year, date)
-
-        station_df = pd.read_csv(file_path, header=None, delim_whitespace=True)
+        station_df = pd.read_csv(file, header=None, delim_whitespace=True)
         station_df.columns = self.header
         return station_df
 
         # converte a coluna ['HORA'] pra pd.to_datetime ou algo do tipo
         # pega o valor mais recente OU pega ultima linha
 
+        #O Error checa se o arquivo existe ou não
 
 
+def teste():
+    disp = stations_available()
+    for i in disp.station_latest():
+        print(i)
 
-@error_handler
-def teste(disp):
-    disp.station_year(i)
-    disp.station_date()
-    df = disp.unpack_data()
-    disp.station_hour(df)
-    disp.station_latest()
-    print(disp.latest_data)
+teste()
 
-
-disp = stations_available()
-disp.station_names()
-for i in disp.stations_list:
-    teste(disp)
 
 
 # for station in station_name():
