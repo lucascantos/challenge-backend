@@ -28,7 +28,7 @@ def error_handler(function):
         try:
             return function(*args, **kargs)
         except Exception as e:
-            #print(e)
+            # print(e)
             return
     return wrapper
 
@@ -45,17 +45,25 @@ class stations_available(object):
         self.header = ['ESTACAO', 'LATITUDE', 'LONGITUDE', 'ALTITUDE', 'ANO', 'MES', 'DIA', 'HORA', 'TEMP', 'TMAX', 'TMIN',
         'UR','URMAX' , 'URMIN' , 'TD' , 'TDMAX' , 'TDMIN' , 'PRESSAONNM' , 'PRESSAONNM_MAX' , 'PRESSAONNM_MIN',
         'VELVENTO', 'DIRVENTO', 'VELVENTO_RAJADA', 'RADIACAO', 'PRECIPATACAO']
+
+    def check_date(self):
+        if not isinstance(self.date_filter, datetime):
+            self.date_filter = pd.to_datetime(self.date_filter, dayfirst=True)
+            self.date_filter = self.date_filter.to_pydatetime()
+   
     @error_handler
     def station_date(self, file):
-        self.station_hour('{}/{}'.format(self.path, file))
         # converte o restante pra pd_datetime ou date(YYYY,MM,DD)
         date = datetime.strptime(file[:-8], '%Y-%m-%d')
         if self.date_filter == None:
             if date > self.latest_date:
+                latest_hour = self.station_hour('{}/{}'.format(self.path, file))
+                date = date.replace(hour=latest_hour)
                 self.latest_date = date
         elif date == self.date_filter:
-            self.latest_date = date        
-        self.latest_date  = self.latest_date.replace(hour=self.latest_hour)
+            latest_hour = self.station_hour('{}/{}'.format(self.path, file))
+            date = date.replace(hour=latest_hour)
+            self.latest_date = date
 
             # O error cheka se a data existe
 
@@ -64,10 +72,13 @@ class stations_available(object):
         Abre um dataframe do banco de dados e tira a ultima hora de registro
         '''
         df = self.unpack_data(file)
+        latest_hour = df['HORA'].max()
         if self.hour_filter == None:
-            self.latest_hour = df['HORA'].max()
-        else:
-            self.latest_hour = df['HORA'][df['HORA'] == self.hour_filter].iloc[0]
+            return latest_hour
+        elif latest_hour >= self.hour_filter:
+            return self.hour_filter
+
+            
 
         #print(self.latest_date)
         
@@ -77,21 +88,24 @@ class stations_available(object):
         '''
         Resultado final na forma de Dictionary
         '''
+        if self.date_filter != None:
+            self.check_date()
 
-        working_list = os.walk(self.dir, False)
+        working_list = os.walk(self.dir)
         for folder in working_list:
             if folder[2]:
                 # Admitindo que a estrutura de pastas será sempre assim
                 # Admitindo que o walk sempre vai fazer de forma ordenada
-              
+            
                 self.station = folder[0][-9:-5]            
                 self.path = folder[0]
                 self.latest_date = datetime(1800,1,1)
 
+
                 for file in folder[2]:
                     self.station_date(file)
 
-                if self.latest_date != datetime(1800,1,1):
+                if self.latest_date.year != 1800:
                     self.latest_data = {
                         'station': self.station,
                         'date': self.latest_date
@@ -99,29 +113,43 @@ class stations_available(object):
 
                     yield self.latest_data
 
+
+
     def unpack_data(self,file):
         # Coluna3 = Hora recente
         # Abre o arquvio com a data mais recente
+        # TODO: so de abrir um pandas, o demora 11x mais. Tentar evitar essa etapa de checagem de arquivo
+        #       Em teste rudimentar, usando o getsize > 198, demora 4x mais. Meio bruto
+        # TODO: depois que mexer no error handle, tirar esse IF e chamar a função no error_handler
 
-        station_df = pd.read_csv(file, header=None, delim_whitespace=True)
-        station_df.columns = self.header
-        return station_df
+        if self.check_file(file):
+            station_df = pd.read_csv(file, header=None, delim_whitespace=True)
+            station_df.columns = self.header
+            return station_df
+        else:
+            return None
 
         # converte a coluna ['HORA'] pra pd.to_datetime ou algo do tipo
         # pega o valor mais recente OU pega ultima linha
 
         #O Error checa se o arquivo existe ou não
+    
+    def check_file(self,file):
+        non_empty_file = True if os.path.getsize(file)>198 else False
+        return non_empty_file
+        
 
 @timer
 def teste():
-    disp = stations_available(date='2019-10-01')
+    count = 0
+    disp = stations_available(date='2016/01/01', hour=10)
     for i in disp.station_latest():
         print(i)
+        count +=1
+    print(count)
 
 
 teste()
-
-
 
 # for station in station_name():
 #     try:    
