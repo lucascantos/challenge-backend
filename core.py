@@ -64,10 +64,10 @@ class core_table(object):
 
 
 stations = ['A003']
-start_date = date(2016, 1, 2)
+start_date = date(2015, 12, 31)
 end_date = date(2014, 10, 23)
 x = core_table(['A002'], start_date, start_date)
 for i in x.unpack_data():
     # Ve se o objeto encontrado é um dataframe
     if isinstance(i, pd.DataFrame):
-        print(i)
+        print(i['HORA'])

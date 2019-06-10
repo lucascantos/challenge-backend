@@ -20,9 +20,9 @@ def timer(function):
 def error_handler(function):
     '''
     Função de tratamento dos erros da função:
-    TODO: Aprender dar um argumento de entrada no decorador pra customizar os erros por função
+    TODO 1 : Aprender dar um argumento de entrada no decorador pra customizar os erros por função
     TODO: Depois disso, fazer o log com os erros
-    TODO 2: Adicionar um novo wrapper pra adiconar argumento
+    TODO 1: Adicionar um novo wrapper pra adiconar argumento
     '''
     def wrapper(*args, **kargs):
         try:
@@ -35,89 +35,120 @@ def error_handler(function):
 
 class stations_available(object):
     def __init__(self, station=None, date=None, hour=None):
+        '''
+        Cria uma lista de estações disponiveis.
+        station: filtra os dados apenas para a estação desejada
+        date: filtro para a data desejada
+        hour: filtro para a hora desejada
+
+        return: Um gerador entendo a estação, data do arquivo e valor da ultima hora registrada. 
+        '''
         self.station_filter = station
         self.date_filter = date
         self.hour_filter = hour
 
-
+        
+        # self.output = pd.DataFrame(columns=['stations', 'date'])
+        # Diretorio base dos arquivos. Header dos dados de cada arquivo de acordo com o INMET
         self.dir = 'stations/stations'
-
         self.header = ['ESTACAO', 'LATITUDE', 'LONGITUDE', 'ALTITUDE', 'ANO', 'MES', 'DIA', 'HORA', 'TEMP', 'TMAX', 'TMIN',
         'UR','URMAX' , 'URMIN' , 'TD' , 'TDMAX' , 'TDMIN' , 'PRESSAONNM' , 'PRESSAONNM_MAX' , 'PRESSAONNM_MIN',
         'VELVENTO', 'DIRVENTO', 'VELVENTO_RAJADA', 'RADIACAO', 'PRECIPATACAO']
 
     def check_date(self):
+        '''
+        Converte uma data de String para datetime do Python.
+        essa passagem do Pandas é por ele ja trata parte do regex
+        '''
         if not isinstance(self.date_filter, datetime):
             self.date_filter = pd.to_datetime(self.date_filter, dayfirst=True)
             self.date_filter = self.date_filter.to_pydatetime()
    
+    def station_name(self,folder):
+        '''
+        Devolve o nome da estação. Filtra os dados por estação.
+        folder: string contendo o caminho {BaseDir}/{Station}/{year}
+        '''
+        station_name = folder[0][-9:-5]
+        if self.station_filter == None:
+            return station_name
+        elif station_name == self.station_filter:
+            return station_name
+
     @error_handler
     def station_date(self, file):
-        # converte o restante pra pd_datetime ou date(YYYY,MM,DD)
+        '''
+        Converte a data do arquivo pra datetime. Filtra os dados por data
+        file: String contendo {nome_do_arquivo}.txt.zip
+        '''
+        # TODO: Error handler pra datas zuadas tipo 31/02/20XX
+        
         date = datetime.strptime(file[:-8], '%Y-%m-%d')
         if self.date_filter == None:
-            if date > self.latest_date:
-                latest_hour = self.station_hour('{}/{}'.format(self.path, file))
-                date = date.replace(hour=latest_hour)
-                self.latest_date = date
+            # Ele puxa a hora se o arquivo existe e ja adiciona na data
+            latest_hour = self.station_hour('{}/{}'.format(self.path, file))
+            date = date.replace(hour=latest_hour)
+            return date
         elif date == self.date_filter:
             latest_hour = self.station_hour('{}/{}'.format(self.path, file))
             date = date.replace(hour=latest_hour)
-            self.latest_date = date
+            return date
 
-            # O error cheka se a data existe
 
     def station_hour(self, file):
         '''
-        Abre um dataframe do banco de dados e tira a ultima hora de registro
+        Abre arquivo desejado e puxa o horario desejado. ultimo horario caso não haja filtro
         '''
         df = self.unpack_data(file)
-        latest_hour = df['HORA'].max()
         if self.hour_filter == None:
+            latest_hour = df['HORA'].max()
             return latest_hour
-        elif latest_hour >= self.hour_filter:
-            return self.hour_filter
+        # toda essa patifaria pra checar se a hora realmente existe dentro do arquivo. Ja garante perda de dados.
+        elif self.hour_filter == int(df['HORA'][df['HORA'] == latest_hour].iloc[0]):
+            return self.hour_filter            
 
-            
-
-        #print(self.latest_date)
-        
-        # O error cheka se exisem dados nesse arquivo
     @error_handler
     def station_latest(self):
         '''
-        Resultado final na forma de Dictionary
+        Lê no banco de dados e retorna todos os arquivos que contem os dados requisitados
         '''
+        # Arruma a data do filtro
         if self.date_filter != None:
             self.check_date()
 
+        # Abre todas as subpastas do diretorio base
         working_list = os.walk(self.dir)
         for folder in working_list:
+            # Filtro de pastas vazias/sem arquivos. Checa se pasta possui arquivos dentro.
             if folder[2]:
-                # Admitindo que a estrutura de pastas será sempre assim
-                # Admitindo que o walk sempre vai fazer de forma ordenada
-            
-                self.station = folder[0][-9:-5]            
+
+                # Puxa o nome da estação. Cria o caminho pra ele    
+                self.station = self.station_name(folder)            
                 self.path = folder[0]
-                self.latest_date = datetime(1800,1,1)
+                
+                # Filtro de estação.
+                if self.station != None:
+                    
+                    # Limpa e filtra data e hora
+                    self.latest_date = None
+                    for file in folder[2]:
+                        self.latest_date = self.station_date(file)
+                        if self.latest_date != None:
 
-
-                for file in folder[2]:
-                    self.station_date(file)
-
-                if self.latest_date.year != 1800:
-                    self.latest_data = {
-                        'station': self.station,
-                        'date': self.latest_date
-                    }
-
-                    yield self.latest_data
+                            self.latest_data = {
+                                'station': self.station,
+                                'date': self.latest_date
+                            }
+                            yield self.latest_data
 
 
 
     def unpack_data(self,file):
-        # Coluna3 = Hora recente
-        # Abre o arquvio com a data mais recente
+        '''
+        Abre um arquivo desejado
+
+        return: DataFrame, caso exista.
+        '''
         # TODO: so de abrir um pandas, o demora 11x mais. Tentar evitar essa etapa de checagem de arquivo
         #       Em teste rudimentar, usando o getsize > 198, demora 4x mais. Meio bruto
         # TODO: depois que mexer no error handle, tirar esse IF e chamar a função no error_handler
@@ -126,8 +157,6 @@ class stations_available(object):
             station_df = pd.read_csv(file, header=None, delim_whitespace=True)
             station_df.columns = self.header
             return station_df
-        else:
-            return None
 
         # converte a coluna ['HORA'] pra pd.to_datetime ou algo do tipo
         # pega o valor mais recente OU pega ultima linha
@@ -142,21 +171,11 @@ class stations_available(object):
 @timer
 def teste():
     count = 0
-    disp = stations_available(date='2016/01/01', hour=10)
-    for i in disp.station_latest():
-        print(i)
+    disp = stations_available(station='A003')
+    for i in disp.station_latest():  
+        print(i)      
         count +=1
     print(count)
 
 
 teste()
-
-# for station in station_name():
-#     try:    
-#         year, lastdate = station_date(station)
-#         lastdate = datetime.strftime(lastdate, '%Y-%m-%d')
-#         unpack_data(station,year,lastdate)
-#         # TODO: Esse é um caso real onde pastas são criadas, mas não tem arquivo dentro?
-#         # Devo procurar o ultimo arquivo com dados ou posso confiar nas pastas e que os arquivos tem conteudo?
-#     except:
-#         pass
