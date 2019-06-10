@@ -32,8 +32,26 @@ def error_handler(function):
             return
     return wrapper
 
+def station_filter(filter=None):
+    def wrapper(func):
+        def subwrapper(*args, **kargs):
+            unfiltered = func(*args, **kargs)
+            if filter == None:
+                return unfiltered
+            elif filter == unfiltered:
+                filtered = unfiltered
+                return filtered
+        return subwrapper
+    return wrapper
 
 class stations_available(object):
+
+    class inside_filter(object):
+        def __init__(self, f):
+            self.f = f
+        def __call__(self, *args, **kwargs):
+            self.f(*args, **kwargs)
+
     def __init__(self, station=None, date=None, hour=None):
         '''
         Cria uma lista de estações disponiveis.
@@ -63,17 +81,15 @@ class stations_available(object):
         if not isinstance(self.date_filter, datetime):
             self.date_filter = pd.to_datetime(self.date_filter, dayfirst=True)
             self.date_filter = self.date_filter.to_pydatetime()
-   
+            
+    @station_filter('A003')
     def station_name(self,folder):
         '''
         Devolve o nome da estação. Filtra os dados por estação.
         folder: string contendo o caminho {BaseDir}/{Station}/{year}
         '''
         station_name = folder[0][-9:-5]
-        if self.station_filter == None:
-            return station_name
-        elif station_name == self.station_filter:
-            return station_name
+        return station_name
 
     @error_handler
     def station_date(self, file):
