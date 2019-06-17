@@ -17,19 +17,21 @@ def timer(function):
         print('Elapsed: {}s'. format(after-before))
     return wrapper
 
-def error_handler(function):
-    '''
-    Função de tratamento dos erros da função:
-    TODO 1 : Aprender dar um argumento de entrada no decorador pra customizar os erros por função
-    TODO: Depois disso, fazer o log com os erros
-    TODO 1: Adicionar um novo wrapper pra adiconar argumento
-    '''
-    def wrapper(*args, **kargs):
-        try:
-            return function(*args, **kargs)
-        except Exception as e:
-            # print(e)
-            return
+def error_handler(error=None):
+    def wrapper(function):
+        def subwrapper(*args, **kargs):
+            '''
+            Função de tratamento dos erros da função:
+            TODO 1 : Aprender dar um argumento de entrada no decorador pra customizar os erros por função
+            TODO: Depois disso, fazer o log com os erros
+            TODO 1: Adicionar um novo wrapper pra adiconar argumento
+            '''
+            try:
+                return function(*args, **kargs)
+            except Exception as e:
+                if error != None:
+                    print ('{}: {}'.format(error, e))
+        return subwrapper
     return wrapper
 
 def station_filter(filter=None):
@@ -73,6 +75,7 @@ class stations_available(object):
         'UR','URMAX' , 'URMIN' , 'TD' , 'TDMAX' , 'TDMIN' , 'PRESSAONNM' , 'PRESSAONNM_MAX' , 'PRESSAONNM_MIN',
         'VELVENTO', 'DIRVENTO', 'VELVENTO_RAJADA', 'RADIACAO', 'PRECIPATACAO']
 
+    @error_handler('Data idiota')
     def check_date(self):
         '''
         Converte uma data de String para datetime do Python.
@@ -81,17 +84,19 @@ class stations_available(object):
         if not isinstance(self.date_filter, datetime):
             self.date_filter = pd.to_datetime(self.date_filter, dayfirst=True)
             self.date_filter = self.date_filter.to_pydatetime()
-            
-    @station_filter('A003')
+
     def station_name(self,folder):
         '''
         Devolve o nome da estação. Filtra os dados por estação.
         folder: string contendo o caminho {BaseDir}/{Station}/{year}
         '''
         station_name = folder[0][-9:-5]
-        return station_name
+        if self.station_filter == None:
+            return station_name
+        elif station_name == self.station_filter:
+            return station_name
 
-    @error_handler
+    @error_handler()
     def station_date(self, file):
         '''
         Converte a data do arquivo pra datetime. Filtra os dados por data
@@ -123,7 +128,7 @@ class stations_available(object):
         elif self.hour_filter == int(df['HORA'][df['HORA'] == latest_hour].iloc[0]):
             return self.hour_filter            
 
-    @error_handler
+    @error_handler('Banana')
     def station_latest(self):
         '''
         Lê no banco de dados e retorna todos os arquivos que contem os dados requisitados
@@ -157,12 +162,9 @@ class stations_available(object):
                             }
                             yield self.latest_data
 
-
-
     def unpack_data(self,file):
         '''
         Abre um arquivo desejado
-
         return: DataFrame, caso exista.
         '''
         # TODO: so de abrir um pandas, o demora 11x mais. Tentar evitar essa etapa de checagem de arquivo
@@ -184,14 +186,12 @@ class stations_available(object):
         return non_empty_file
         
 
-@timer
-def teste():
-    count = 0
-    disp = stations_available(station='A003')
-    for i in disp.station_latest():  
-        print(i)      
-        count +=1
-    print(count)
-
-
-teste()
+# @timer
+# def teste():
+#     count = 0
+#     disp = stations_available(station='A003', date='2019/31/31')
+#     for i in disp.station_latest():  
+#         # print(i)      
+#         count +=1
+#     print(count)
+# teste()

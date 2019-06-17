@@ -14,13 +14,17 @@ def error_handler(function):
         try:
             return function(*args, **kargs)
         except Exception as e:
-            print(e)
+            # print(e)
             pass
     return wrapper
 
 class core_table(object):
-    def __init__(self,stations, start_date, end_date):
-        self.stations = stations
+    def __init__(self,station, start_date, end_date):
+        '''
+        Cria um Dataframe de uma estação em uma data especifica.
+        stations, start_date, end_date: filtros dos dados
+        '''
+        self.station = station
         self.start_date = start_date
         self.end_date = end_date
 
@@ -42,15 +46,14 @@ class core_table(object):
         '''
         Cria o caminho do arquivo a ser aberto.
         '''
-        for single_station in self.stations:
-            for single_date in self.datarange():
-                self.file_path = '{db_folder}/{station}/{year}/{year}-{month}-{day}.txt.zip'.format(
-                db_folder=db_folder,
-                station=single_station,
-                year=single_date.strftime('%Y'),
-                month=single_date.strftime('%m'),
-                day=single_date.strftime('%d'))
-                yield self.file_path
+        for single_date in self.datarange():
+            self.file_path = '{db_folder}/{station}/{year}/{year}-{month}-{day}.txt.zip'.format(
+            db_folder=db_folder,
+            station=self.station,
+            year=single_date.strftime('%Y'),
+            month=single_date.strftime('%m'),
+            day=single_date.strftime('%d'))
+            yield self.file_path
 
     @error_handler
     def unpack_data(self):
@@ -63,7 +66,7 @@ class core_table(object):
             yield station_df
 
 
-stations = ['A003']
+stations = ['A003', 'A002']
 start_date = date(2015, 12, 31)
 end_date = date(2014, 10, 23)
 x = core_table(['A002'], start_date, start_date)
