@@ -172,7 +172,7 @@ class stations_available(object):
         # TODO: depois que mexer no error handle, tirar esse IF e chamar a função no error_handler
 
         if self.check_file(file):
-            station_df = pd.read_csv(file, header=None, delim_whitespace=True)
+            station_df = pd.read_csv(file, header=None, delim_whitespace=True, compression='zip')
             station_df.columns = self.header
             return station_df
 

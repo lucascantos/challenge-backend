@@ -1,6 +1,7 @@
-from flask import Flask
+from flask import Flask, request
 from core import core_table
 from stations import stations_available
+import pandas as pd
 
 
 stratus_app = Flask(__name__)
@@ -23,9 +24,22 @@ def stations():
 
 @stratus_app.route('/postback')
 def postback():
-    stations=[]
-    for stations in station:
-        query_dataframe = core_table(station, start_date, end_date)
+    stations = request.args.get('station')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    # TODO: Checkar arquivo antes de rodar
+
+
+    stations_data = []
+    for station_name in stations:
+        query_dataframe = core_table(station_name, start_date, end_date)
+        station_data = pd.DataFrame()
+        for date in query_dataframe.unpack_data():
+            station_data.append(date, ignore_index=True)
+        station_dict = dict(station=station_name, data=station_data)
+        stations_data.append(station_dict)
+    return stations_data
         
 
     '''

@@ -61,12 +61,12 @@ class core_table(object):
         Descompacta o arquivo e prepara um DataFrame
         '''
         for file_path in self.make_file_path():
-            station_df = pd.read_csv(file_path,header=None, delim_whitespace=True)
+            station_df = pd.read_csv(file_path,header=None, delim_whitespace=True, compression='zip')
             station_df.columns = self.header
             yield station_df
 
 
-stations = ['A003', 'A002']
+'''stations = ['A003', 'A002']
 start_date = date(2015, 12, 31)
 end_date = date(2014, 10, 23)
 x = core_table(['A002'], start_date, start_date)
@@ -74,3 +74,4 @@ for i in x.unpack_data():
     # Ve se o objeto encontrado é um dataframe
     if isinstance(i, pd.DataFrame):
         print(i['HORA'])
+'''
